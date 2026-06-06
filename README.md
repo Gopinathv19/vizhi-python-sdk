@@ -129,7 +129,7 @@ gemini = vs.provide_model("gemini/gemini-2.5-flash", token)
 qwen = vs.provide_model("qwen/qwen-plus", token)
 ```
 
-The selected model must be configured and available in the Vizhi backend.
+The selected model must be configured and available in your profile.
 
 ## Answer And Metadata
 
@@ -239,18 +239,6 @@ Before integrating the SDK, a client needs:
 Treat Vizhi API tokens like passwords. Never expose them in frontend,
 browser-side, or mobile application code. Use the SDK only from trusted
 server-side applications.
-
-## Maintainer Release Checklist
-
-Before sharing the SDK with clients:
-
-1. Deploy the Vizhi backend on a public HTTPS URL.
-2. Test the SDK against the deployed backend.
-3. Update the version in `setup.py` and `vizhi_sdk/__init__.py`.
-4. Commit and push the SDK repository.
-5. Create and push a matching version tag.
-
-Example for version `0.1.0`:
 
 ```bash
 git tag -a v0.1.0 -m "Vizhi Python SDK v0.1.0"
