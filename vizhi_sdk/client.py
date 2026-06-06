@@ -20,25 +20,25 @@ class ModelProvider:
 
     def __init__(
         self,
-        model: str,
+        model: str | None,
         token: str,
         *,
         base_url: str | None = None,
         timeout: float = 60.0,
         call_sdk: str | None = None,
     ) -> None:
-        if not model or not model.strip():
-            raise ValueError("model must not be empty")
         if not token or not token.strip():
             raise ValueError("token must not be empty")
         if timeout <= 0:
             raise ValueError("timeout must be greater than zero")
 
-        self.model = model.strip()
+        resolved_base_url = base_url or os.environ.get("VIZHI_BASE_URL")
+        if not resolved_base_url or not resolved_base_url.strip():
+            raise ValueError("base_url must not be empty")
+
+        self.model = model.strip() if model else None
         self.token = token.strip()
-        self.base_url = (
-            base_url  
-        ).rstrip("/")
+        self.base_url = resolved_base_url.strip().rstrip("/")
         self.timeout = timeout
         self.call_sdk = call_sdk
 
@@ -51,10 +51,11 @@ class ModelProvider:
     ) -> ChatAnswer:
         """Send one chat request and return its answer with usage metadata."""
         payload: dict[str, Any] = {
-            "model": self.model,
             "messages": _normalize_messages(queries),
             "temperature": temperature,
         }
+        if self.model is not None:
+            payload["model"] = self.model
         if max_tokens is not None:
             payload["max_tokens"] = max_tokens
         if self.call_sdk is not None:
@@ -93,14 +94,28 @@ class ModelProvider:
 
 
 def provide_model(
-    model_name: str,
-    token: str,
+    model_name: str | None = None,
+    token: str | None = None,
     *,
     base_url: str | None = None,
     timeout: float = 60.0,
     call_sdk: str | None = None,
 ) -> ModelProvider:
-    """Create a Vizhi client bound to a model and API token."""
+    """Create a Vizhi client.
+
+    New model-token usage passes only the token::
+
+        provide_model("vz_live_...")
+
+    The older ``provide_model(model_name, token)`` form is still supported for
+    agent-token compatibility.
+    """
+    if token is None:
+        token = model_name
+        model_name = None
+    if token is None:
+        raise ValueError("token must not be empty")
+
     return ModelProvider(
         model_name,
         token,

@@ -37,7 +37,6 @@ python3 -c "import vizhi_sdk; print(vizhi_sdk.__version__)"
 import vizhi_sdk as vs
 
 provider = vs.provide_model(
-    "openai/gpt-4o-mini",
     "vz_live_your_api_token",
     base_url="https://api.your-vizhi-domain.com",
 )
@@ -56,8 +55,8 @@ The SDK sends the token to the Vizhi backend using:
 Authorization: Bearer vz_live_your_api_token
 ```
 
-The Vizhi backend validates the token and routes the request to the selected
-model provider. 
+The Vizhi backend validates the token, reads the model bound to that token, and
+routes the request to the correct model provider.
 
 ## Secure Configuration
 
@@ -76,7 +75,6 @@ import os
 import vizhi_sdk as vs
 
 provider = vs.provide_model(
-    "openai/gpt-4o-mini",
     os.environ["VIZHI_API_TOKEN"],
 )
 
@@ -120,16 +118,16 @@ number of generated tokens.
 
 ## Selecting Models
 
-Use a provider-prefixed model name when possible:
+Select the model in Vizhi when generating the model token. SDK callers should
+usually pass only the token:
 
 ```python
-openai = vs.provide_model("openai/gpt-4o-mini", token)
-anthropic = vs.provide_model("anthropic/claude-sonnet-4-20250514", token)
-gemini = vs.provide_model("gemini/gemini-2.5-flash", token)
-qwen = vs.provide_model("qwen/qwen-plus", token)
+model = vs.provide_model(token)
 ```
 
-The selected model must be configured and available in your profile.
+The backend rejects requests if a caller tries to use a model that does not
+match the model bound to the token. The older `provide_model(model, token)` form
+is still available for agent-token compatibility.
 
 ## Answer And Metadata
 
@@ -183,7 +181,7 @@ Common causes:
 
 | Error | Likely cause |
 |---|---|
-| `AuthenticationError` | Missing, invalid, inactive, or revoked agent token |
+| `AuthenticationError` | Missing, invalid, inactive, or revoked model/agent token |
 | `APIError: Could not connect` | Incorrect backend URL or unavailable backend |
 | `APIError` with HTTP 400 | Unknown model or invalid request settings |
 | `APIError` with HTTP 502 | Upstream model provider failed |
@@ -196,7 +194,6 @@ provider:
 
 ```python
 provider = vs.provide_model(
-    "openai/gpt-4o-mini",
     token,
     timeout=120,
 )
