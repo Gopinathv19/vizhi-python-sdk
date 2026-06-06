@@ -11,8 +11,6 @@ from urllib.request import Request, urlopen
 
 from .exceptions import APIError, AuthenticationError, InvalidResponseError
 from .models import ChatAnswer
-
-DEFAULT_BASE_URL = "http://localhost:8000"
 Message = Mapping[str, str]
 Query = str | Message | Iterable[Message]
 
@@ -39,7 +37,7 @@ class ModelProvider:
         self.model = model.strip()
         self.token = token.strip()
         self.base_url = (
-            base_url or os.getenv("VIZHI_BASE_URL") or DEFAULT_BASE_URL
+            base_url  
         ).rstrip("/")
         self.timeout = timeout
         self.call_sdk = call_sdk
